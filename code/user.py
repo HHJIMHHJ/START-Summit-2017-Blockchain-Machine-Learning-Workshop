@@ -64,6 +64,7 @@ RPC_HOST = '127.0.0.1'
 RPC_PORT = 8545
 GAS = 20000000
 IMAGE_SIZE = 256
+maximumUnreviewedEssay = 1;
 
 
 ##################################
@@ -85,12 +86,12 @@ signal.signal(signal.SIGINT, handler)
 ##################################
 class Decoder:
     @staticmethod
-    def decodeABI(tinput, sig='setNewUserState(string,bytes,string)'):
+    def decodeABI(tinput, sig='setNewUserState(string,string)'):
         abi = tinput[2 :]
         hash = utils.sha3(sig)[: 4].encode('hex')
         if abi[: 8] != hash:
             return None
-        return decode_abi(['string', 'bytes', 'string'], abi[8 :].decode('hex'))
+        return decode_abi(['string', 'string'], abi[8 :].decode('hex'))
 
 
 ##################################
@@ -150,6 +151,7 @@ def main():
     # console
     #
     topics = []
+    numberOfEssayToBeReviewed = 0
     print('-' * 80)
     print('starting chat command line...')
     while True:
@@ -179,19 +181,24 @@ def main():
             print('[composing new message]')
             sys.stdout.write('message....: ')
             msg = sys.stdin.readline().strip()
+            '''
             sys.stdout.write('image file.: ')
             img = sys.stdin.readline().strip()
+            '''
             sys.stdout.write('custom tags: ')
             tag = sys.stdin.readline().strip()
             print('-' * 80)
             print('sending...')
             # loading image
+            '''
             try:
                 image = Image.open(img)
             except Exception as e:
                 print('loading {} failed'.format(img))
                 continue
+            '''
             # prediction
+            '''
             print('precessing image...')
             label = ImageClassifier.predict(img)
             if label is None:
@@ -200,8 +207,9 @@ def main():
             print('label: {}'.format(label))
             tag += ' #' + label
             bs = ImageHelper.imgToBytes(image)
+            '''
             tx = rpc.call_with_transaction(account_addr, contract_addr,
-                                           'setNewUserState(string,bytes,string)', [msg, bs, tag],
+                                           'setNewUserState(string,string)', [msg, tag],
                                            gas=GAS)
             print('done, transaction id: {}'.format(tx))
 
@@ -271,14 +279,20 @@ def main():
                         res = Decoder.decodeABI(trans['input'])
                         if res is None:
                             continue
-                        msg, code, tags = res
+                        msg, tags = res
                         if all(t not in tags for t in topics):
                             continue
                         print('-' * 80)
                         print('message from user {} (block {}):'.format(trans['from'], newBlock))
                         print('  content: {}'.format(msg))
                         print('  tags...: {}'.format(tags))
+                        numberOfEssayToBeReviewed += 1
+                        if numberOfEssayToBeReviewed >= maximumUnreviewedEssay:
+                            print('Receiving essay has been banned since you have too much essays to be reviewed.')
+                            break
+                        '''
                         ImageHelper.bytesToImg(code).show(title='{}'.format(tags))
+                        '''
                 time.sleep(1)
 
         #

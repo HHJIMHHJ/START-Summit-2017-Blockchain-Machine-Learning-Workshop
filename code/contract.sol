@@ -26,7 +26,7 @@ contract ImgStorage
 	struct UserState
 	{
         string userMessage;
-        bytes userImage;
+        //bytes userImage;
         string userTags;
 	}
 	
@@ -37,22 +37,50 @@ contract ImgStorage
 	mapping (address => UserState) userMapping;
 
 	// now just some functions to actually set a new state and request it
-	function getOwnUserState() constant returns(string, bytes, string)
+	function getOwnUserState() constant returns(string, string)
 	{
 	    return getUserState(msg.sender);
 	}
 
-	function getUserState(address target) constant returns(string, bytes, string)
+	function getUserState(address target) constant returns(string, string)
 	{
         return (userMapping[target].userMessage,
-                userMapping[target].userImage,
+                //userMapping[target].userImage,
                 userMapping[target].userTags);
 	}
 
-	function setNewUserState(string message, bytes imgData, string tags)
+	function setNewUserState(string message, string tags)
 	{
 		userMapping[msg.sender].userMessage = message;
-		userMapping[msg.sender].userImage = imgData;
+		//userMapping[msg.sender].userImage = imgData;
 		userMapping[msg.sender].userTags = tags;
 	}
+/**/
+	struct Essay
+	{
+	string title;
+	string author;
+	bytes content;
+	string review1;
+	string review2;
+	}
+
+	mapping (address => Essay) userEssay;	
+
+	function uploadEssay(string title, bytes content)
+	{
+		userEssay(msg.sender).title = title;
+		userEssay(msg.sender).content = content;
+		userEssay(msg.sender).author = msg.sender;
+	}
+
+	function chooseReviewer(){}
+
+	function uploadReview(string review)
+	{
+		
+	}
+
+	function notifyTheAuthor(){}
+/**/
 }

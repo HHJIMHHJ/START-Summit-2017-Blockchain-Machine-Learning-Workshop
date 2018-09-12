@@ -74,7 +74,7 @@ def main():
     #
     print('-' * 80)
     lastBlock = rpc.eth_blockNumber()
-    contract_tx = rpc.create_contract(rpc.eth_coinbase(), contract_bin, gas=GAS)
+    contract_tx = rpc.create_contract(rpc.eth_coinbase(), contract_bin, gas=GAS)#send to address 0 by default to create contract
     print('contract sent, waiting for it to be mined...')
     #
     # get current block count
@@ -88,12 +88,13 @@ def main():
             numTry += 1
             try:
                 contract_addr = rpc.get_contract_address(contract_tx)
-                if rpc.eth_getCode(contract_addr) == '0x0':
+                if rpc.eth_getCode(contract_addr) == '0x0':#it means the binary code of the contract is stil under compiling
                     raise Exception()
                 print('contract mined (block: {})'.format(curBlock))
                 break
             except:
                 print('new block detected, but contract not mined')
+		print('number of trying: {}'.format(numTry))
                 if numTry == WAIT_BLOCKS:
                     print('publishing contract failed')
                     sys.exit(-1)
